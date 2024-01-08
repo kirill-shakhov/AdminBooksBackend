@@ -18,6 +18,9 @@ router.post('/registration',
 );
 
 router.post('/login', controller.login)
+router.post('/logout', controller.logout)
+// router.post('/activate/:link',)
+router.get('/refresh',controller.refresh)
 router.get('/users', roleMiddleware(["ADMIN"]), controller.getUsers)
 
 

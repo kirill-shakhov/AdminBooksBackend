@@ -5,6 +5,7 @@ module.exports = [
     check('password', 'Пароль должен быть от 4 до 10 символов').isLength({min: 4, max: 10}),
     check('firstName', 'Имя не может быть пустым').notEmpty(),
     check('lastName', 'Фамилия не может быть пустой').notEmpty(),
+    check('email', 'Введите корректную почту').isEmail(),
     (req, res, next) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
