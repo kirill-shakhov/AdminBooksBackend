@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 
 const mongoose = require('mongoose');
 const authRouter = require('./api/routes/authRouter');
+const bookRouter = require('./api/routes/bookRouter');
 const errorMiddleware = require('./middleware/errorMiddleware');
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(cookieParser());
 app.use(cors());
 app.use('/uploads/avatars', express.static('uploads/avatars'));
 app.use('/auth', authRouter);
+app.use('/book', bookRouter);
 app.use(errorMiddleware);
 
 async function start() {
