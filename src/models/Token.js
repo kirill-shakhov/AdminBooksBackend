@@ -1,4 +1,4 @@
-// AdminBooksBackend > src > models > User.js
+// AdminBooksBackend > src > models > Token.js
 const {Schema, model} = require('mongoose');
 
 const Token = new Schema({
