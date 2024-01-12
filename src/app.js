@@ -17,8 +17,10 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
 app.use('/uploads/avatars', express.static('uploads/avatars'));
+app.use('/uploads/booksImages', express.static('uploads/booksImages')); // Для изображений книг
+app.use('/uploads/books', express.static('uploads/books')); // Для файлов книг (PDF)
 app.use('/auth', authRouter);
-app.use('/book', bookRouter);
+app.use('/books', bookRouter);
 app.use(errorMiddleware);
 
 async function start() {
