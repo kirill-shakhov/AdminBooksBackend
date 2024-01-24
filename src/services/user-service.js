@@ -44,14 +44,14 @@ class UserService {
 
         if (!user) {
             // return res.status(400).json({message: `Пользователь ${username} не найден`})
-            throw ApiError.BadRequest(`Пользователь ${username} не найден`)
+            throw ApiError.BadRequest(`Пользователь ${username} не найден`, [{field: 'username'}])
 
         }
 
         const validPassword = await bcrypt.compareSync(password, user.password)
 
         if (!validPassword) {
-            throw ApiError.BadRequest(`Введен неверный пароль`)
+            throw ApiError.BadRequest(`Введен неверный пароль`, [{field: 'password'}])
         }
 
         const userDto = new UserDto(user);

@@ -1,4 +1,3 @@
-// AdminBooksBackend > src > models > User.js
 const {Schema, model} = require('mongoose');
 
 const Author = new Schema({

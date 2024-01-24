@@ -7,7 +7,11 @@ const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 const authRouter = require('./api/routes/authRouter');
 const bookRouter = require('./api/routes/bookRouter');
+const profileRouter = require('./api/routes/profileRouter');
 const errorMiddleware = require('./middleware/errorMiddleware');
+
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./swaggerDef');
 
 const app = express();
 const PORT = process.env.PORT || 5000
@@ -15,12 +19,17 @@ const PORT = process.env.PORT || 5000
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
+app.use(cors({
+    credentials: true,
+    origin: process.env.CLIENT_URL
+}));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/uploads/avatars', express.static('uploads/avatars'));
 app.use('/uploads/booksImages', express.static('uploads/booksImages')); // Для изображений книг
 app.use('/uploads/books', express.static('uploads/books')); // Для файлов книг (PDF)
 app.use('/auth', authRouter);
 app.use('/books', bookRouter);
+app.use('/profile', profileRouter);
 app.use(errorMiddleware);
 
 async function start() {

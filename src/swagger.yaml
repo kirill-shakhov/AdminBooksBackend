@@ -1,0 +1,334 @@
+openapi: 3.0.0
+info:
+  title: Название вашего API
+  version: '1.0'
+  description: Описание вашего API
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        image:
+          type: string
+          nullable: true
+        isActivated:
+          type: boolean
+        activationLink:
+          type: string
+          nullable: true
+        roles:
+          type: array
+          items:
+            type: string
+    Book:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Название книги.
+        image:
+          type: string
+          description: Ссылка на изображение книги.
+        book:
+          type: string
+          description: Ссылка на файл книги.
+        genre:
+          $ref: '#/components/schemas/Genre'
+          description: Жанр книги.
+        author:
+          $ref: '#/components/schemas/Author'
+          description: Автор книги.
+        user:
+          $ref: '#/components/schemas/User'
+          description: Пользователь, добавивший книгу.
+      required:
+        - title
+        - genre
+        - author
+    Genre:
+      type: object
+      properties:
+        name:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    Author:
+      type: object
+      properties:
+        name:
+          type: string
+
+    Role:
+      type: object
+      properties:
+        value:
+          type: string
+          enum: [ USER, ADMIN ] # Пример значений
+
+    Token:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        refreshToken:
+          type: string
+
+tags:
+  - name: Auth
+    description: Операции авторизации и регистрации
+  - name: Book
+    description: Операции над книгой
+
+paths:
+  /auth/registration:
+    post:
+      tags:
+        - Auth
+      summary: Регистрация нового пользователя
+      description: Этот маршрут позволяет зарегистрировать нового пользователя.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Пользователь успешно зарегистрирован.
+        400:
+          description: Некорректные данные.
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Авторизация пользователя
+      description: Этот маршрут позволяет авторизировать пользователя.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Пользователь успешно авторизован.
+        400:
+          description: Некорректные данные для входа.
+
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Выход пользователя
+      description: Этот маршрут позволяет пользователю выйти из системы, удаляя его токен обновления.
+      responses:
+        200:
+          description: Пользователь успешно вышел из системы.
+        401:
+          description: Неавторизованный доступ или ошибка аутентификации.
+
+  /auth/users:
+    get:
+      tags:
+        - Auth
+      summary: Список пользователей
+      description: Этот маршрут позволяет администратору получить список всех пользователей. Доступ ограничен для пользователей с ролью "ADMIN".
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Успешное получение списка пользователей.
+        401:
+          description: Неавторизованный доступ или ошибка аутентификации.
+
+  /books/genres:
+    get:
+      tags:
+        - Book
+      summary: Получение списка жанров
+      description: Получение списка всех жанров, добавленных пользователем.
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Список жанров успешно получен.
+
+  /books/genres/add:
+    post:
+      tags:
+        - Book
+      summary: Добавление нового жанра
+      description: Добавление нового жанра пользователем.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        200:
+          description: Жанр успешно добавлен.
+        400:
+          description: Ошибка в запросе.
+
+  /books/genre/{genreId}:
+    get:
+      tags:
+        - Book
+      summary: Получение книг по жанру
+      description: Получение списка книг определенного жанра.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: genreId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Список книг жанра успешно получен.
+        404:
+          description: Жанр не найден.
+
+  /books/authors:
+    get:
+      tags:
+        - Book
+      summary: Получение списка авторов
+      description: Получение списка всех авторов, добавленных пользователем.
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Список авторов успешно получен.
+
+  /books/authors/add:
+    post:
+      tags:
+        - Book
+      summary: Добавление нового автора
+      description: Добавление нового автора пользователем.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        200:
+          description: Автор успешно добавлен.
+        400:
+          description: Ошибка в запросе.
+
+  /books/authors/{authorId}:
+    get:
+      tags:
+        - Book
+      summary: Получение книг автора
+      description: Получение списка книг определенного автора.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: authorId
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Список книг автора успешно получен.
+        404:
+          description: Автор не найден.
+  /books:
+    get:
+      tags:
+        - Book
+      summary: Получение списка книг
+      description: Получение списка всех книг, добавленных пользователем, с возможностью пагинации и сортировки.
+      security:
+        - bearerAuth: [ ]
+      responses:
+        200:
+          description: Список книг успешно получен.
+        401:
+          description: Неавторизованный доступ или ошибка аутентификации.
+  /books/upload:
+    post:
+      tags:
+        - Book
+      summary: Загрузка новой книги
+      description: Загружает новую книгу, включая ее файл и обложку.
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                genreName:
+                  type: string
+                authorName:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+                book:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Книга успешно загружена.
+        400:
+          description: Ошибка в запросе.

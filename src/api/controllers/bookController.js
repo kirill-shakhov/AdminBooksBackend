@@ -6,6 +6,7 @@ const Author = require('../../models/Author');
 const Book = require("../../models/Book");
 const ApiError = require('../../exceptions/api-error');
 const {validationResult} = require("express-validator");
+const User = require("../../models/User");
 
 class BookController {
 
@@ -63,14 +64,42 @@ class BookController {
 
     async updateBook(req, res, next) {
         try {
+
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                // Обработка ошибок валидации
+                throw ApiError.BadRequest('Ошибка при обновлении книги', errors.array())
+            }
+
             const bookId = req.params.bookId; // ID книги из параметров запроса
             const userId = req.user.id; // ID пользователя из JWT
+            const currentBook = await Book.findOne({_id: bookId, user: userId});
             const updateData = {};
 
             // Добавляем поля в объект updateData, если они предоставлены в теле запроса
             if (req.body.title) updateData.title = req.body.title;
-            if (req.body.image) updateData.image = req.body.image;
 
+            if (req.files && req.files['image']) {
+                // Удаление старого файла изображения, если загружается новое изображение
+                if (currentBook && currentBook.image) {
+                    const currentImagePath = path.join(currentBook.image);
+                    if (fs.existsSync(currentImagePath)) {
+                        fs.unlinkSync(currentImagePath);
+                    }
+                }
+                updateData.image = req.files['image'][0].path; // Путь к новому изображению
+            }
+
+            if (req.files && req.files['book']) {
+                // Удаление старого файла изображения, если загружается новое изображение
+                if (currentBook && currentBook.book) {
+                    const currentBookPath = path.join(currentBook.book);
+                    if (fs.existsSync(currentBookPath)) {
+                        fs.unlinkSync(currentBookPath);
+                    }
+                }
+                updateData.book = req.files['book'][0].path; // Путь к новому изображению
+            }
 
             // Обновляем жанр, если он предоставлен
             if (req.body.genreName) {

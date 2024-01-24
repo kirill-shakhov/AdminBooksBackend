@@ -7,6 +7,7 @@ const {check, validationResult} = require("express-validator");
 const controller = require('../controllers/bookController');
 const authMiddleware = require('../../middleware/authMiddleware');
 const validateUploadBookMiddleware = require('../../middleware/validateUploadBookMiddleware');
+const validateUpdateBookMiddleware = require('../../middleware/validateUpdateBookMiddleware');
 
 router.get('/genres', authMiddleware, controller.getGenres);
 router.post('/genres/add',
@@ -29,7 +30,11 @@ router.post('/upload',
     controller.uploadBook);
 router.get('/', authMiddleware, controller.getBooks);
 router.get('/:bookId', authMiddleware, controller.getBook);
-router.patch('/:bookId', authMiddleware, controller.updateBook);
+router.patch('/:bookId',
+    authMiddleware,
+    upload,
+    validateUpdateBookMiddleware,
+    controller.updateBook);
 router.delete('/:bookId', authMiddleware, controller.deleteBook);
 
 

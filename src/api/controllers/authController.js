@@ -5,6 +5,21 @@ const {validationResult} = require('express-validator');
 const userService = require('../../services/user-service');
 
 class authController {
+    async checkUserExists(req, res, next) {
+        try {
+            const {username} = req.body;
+
+            const userByUsername = await User.findOne({username});
+
+            if (userByUsername) return res.status(200).json({exists: true});
+
+            return res.status(200).json({exists: false});
+
+        } catch (e) {
+            next(e);
+        }
+    }
+
     async registration(req, res, next) {
         try {
             const errors = validationResult(req);

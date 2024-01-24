@@ -21,6 +21,7 @@ router.post('/login', controller.login)
 router.post('/logout', controller.logout)
 // router.post('/activate/:link',)
 router.get('/refresh',controller.refresh)
+router.post('/check-user', controller.checkUserExists);
 router.get('/users', roleMiddleware(["ADMIN"]), controller.getUsers)
 
 
