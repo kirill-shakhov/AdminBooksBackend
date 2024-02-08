@@ -32,22 +32,24 @@ class Profile {
                 // Обработка ошибок валидации
                 throw ApiError.BadRequest('Ошибка при обновлении профиля', errors.array())
             }
-            
+
             const userId = req.user.id;
 
             // Получаем текущий профиль пользователя
             const currentUser = await User.findById(userId);
 
-            if (currentUser && currentUser.image) {
-                // Полный путь к текущему изображению
-                const currentImagePath = path.join(currentUser.image);
+            if (req.file) {
+                if (currentUser && currentUser.image) {
+                    // Полный путь к текущему изображению
+                    const currentImagePath = path.join(currentUser.image);
 
-                // Проверяем, существует ли файл, и удаляем его
-                if (fs.existsSync(currentImagePath)) {
-                    fs.unlinkSync(currentImagePath);
+                    // Проверяем, существует ли файл, и удаляем его
+                    if (fs.existsSync(currentImagePath)) {
+                        fs.unlinkSync(currentImagePath);
+                    }
                 }
-            }
 
+            }
             // Обновляем данные пользователя
             const updateData = {...req.body};
             if (req.file) updateData.image = req.file.path;
