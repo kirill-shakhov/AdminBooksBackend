@@ -4,6 +4,7 @@ const path = require('path');
 const User = require('../../models/User');
 const ApiError = require('../../exceptions/api-error');
 const {validationResult} = require("express-validator");
+const s3Service = require('../../services/s3Service');
 
 class Profile {
 
@@ -29,45 +30,46 @@ class Profile {
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
-                // Обработка ошибок валидации
-                throw ApiError.BadRequest('Ошибка при обновлении профиля', errors.array())
+                throw ApiError.BadRequest('Ошибка при обновлении профиля', errors.array());
             }
 
             const userId = req.user.id;
-
-            // Получаем текущий профиль пользователя
             const currentUser = await User.findById(userId);
 
+            // Если есть файл для загрузки
             if (req.file) {
-                if (currentUser && currentUser.image) {
-                    // Полный путь к текущему изображению
-                    const currentImagePath = path.join(currentUser.image);
-
-                    // Проверяем, существует ли файл, и удаляем его
-                    if (fs.existsSync(currentImagePath)) {
-                        fs.unlinkSync(currentImagePath);
-                    }
+                // Если у пользователя уже есть изображение, удаляем его из S3
+                if (currentUser.image) {
+                    // Создаем объект URL для парсинга полного URL
+                    const parsedUrl = new URL(currentUser.image);
+                    // Извлекаем путь и удаляем ведущий слэш
+                    const fileKey = parsedUrl.pathname.slice(1);
+                    await s3Service.deleteFileFromS3(process.env.AWS_S3_BUCKET, fileKey);
                 }
 
-            }
-            // Обновляем данные пользователя
-            const updateData = {...req.body};
-            if (req.file) updateData.image = req.file.path;
+                // Загрузка нового изображения в S3 и обновление URL изображения в профиле пользователя
+                const response = await s3Service.uploadFileToS3(req.file, 'avatars');
 
-            const updatedUser = await User.findOneAndUpdate({_id: userId}, updateData, {new: true});
+                console.log(response);
 
-            if (!updatedUser) {
-                throw ApiError.NotFound('Пользователь не найден');
+                // Предполагаем, что response.Location содержит полный URL к загруженному файлу
+                currentUser.image = response.href;
             }
 
-            // Возвращаем обновленные данные пользователя
-            const userData = updatedUser.toObject();
-            delete userData.password;
+            // Обновляем другие данные пользователя, если они есть
+            if (req.body.name) currentUser.name = req.body.name;
+            // Добавьте другие поля, которые разрешено обновлять
+
+            await currentUser.save();
+
+            // Фильтрация чувствительных данных перед отправкой
+            const userData = currentUser.toObject();
+            delete userData.password; // Удаление пароля из объекта пользователя
             delete userData.activationLink;
             delete userData._id;
             delete userData.roles;
 
-            return res.status(200).json({message: 'Данные пользователя успешно изменены', userData});
+            return res.status(200).json({message: 'Профиль успешно обновлен', userData});
 
         } catch (e) {
             next(e);
