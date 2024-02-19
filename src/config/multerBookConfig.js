@@ -8,27 +8,8 @@ function ensureDirSync(dirPath) {
     }
 }
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        let dir = '';
+const storage = multer.memoryStorage(); // Файлы будут храниться в памяти
 
-        if (file.fieldname === 'book') {
-            // Относительный путь для сохранения PDF-файлов книг
-            dir = 'uploads/books/';
-        } else if (file.fieldname === 'image') {
-            // Относительный путь для сохранения изображений
-            dir = 'uploads/booksImages/';
-        }
-
-        // Создаем директорию, если она не существует
-        ensureDirSync(path.join(__dirname, '../../', dir));
-
-        cb(null, dir);
-    },
-    filename: function (req, file, cb) {
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-    }
-});
 
 const fileFilter = (req, file, cb) => {
     // Расширяем проверку для разных форматов электронных книг
