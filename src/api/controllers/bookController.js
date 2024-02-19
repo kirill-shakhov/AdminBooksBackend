@@ -7,6 +7,7 @@ const Book = require("../../models/Book");
 const ApiError = require('../../exceptions/api-error');
 const {validationResult} = require("express-validator");
 const User = require("../../models/User");
+const s3Service = require('../../services/s3Service');
 
 class BookController {
 
@@ -200,8 +201,21 @@ class BookController {
             const {title, genreName, authorName} = req.body;
             const userId = req.user.id;
 
-            const image = req.files['image'] ? req.files['image'][0].path : 'path-to-default-image';
-            const bookFile = req.files['book'] ? req.files['book'][0].path : null;
+            let imageUrl, bookUrl;
+
+            // Загрузка изображения, если оно есть
+            if (req.files['image']) {
+                const image = req.files['image'][0]; // Получаем файл изображения
+                const imageUploadResult = await s3Service.uploadFileToS3(image, 'books-previews');
+                imageUrl = imageUploadResult.href; // URL изображения после загрузки в S3
+            }
+
+            // Загрузка файла книги, если он есть
+            if (req.files['book']) {
+                const book = req.files['book'][0]; // Получаем файл книги
+                const bookUploadResult = await s3Service.uploadFileToS3(book, 'books');
+                bookUrl = bookUploadResult.href; // URL книги после загрузки в S3
+            }
 
             let lowerCaseGenreName = genreName.toLowerCase();
             let lowerCaseAuthorName = authorName.toLowerCase();
@@ -223,8 +237,8 @@ class BookController {
             // Создаем книгу с привязанными жанром, автором и пользователем
             const book = new Book({
                 title,
-                image,
-                book: bookFile,
+                image: imageUrl,
+                book: bookUrl,
                 genre: genre._id,
                 author: author._id,
                 user: userId
