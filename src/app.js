@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const authRouter = require('./api/routes/authRouter');
 const bookRouter = require('./api/routes/bookRouter');
 const profileRouter = require('./api/routes/profileRouter');
+const uploadRouter = require('./api/routes/s3Router');
 const errorMiddleware = require('./middleware/errorMiddleware');
 
 const swaggerUi = require('swagger-ui-express');
@@ -30,6 +31,7 @@ app.use('/uploads/books', express.static('uploads/books')); // Для файло
 app.use('/auth', authRouter);
 app.use('/books', bookRouter);
 app.use('/profile', profileRouter);
+app.use('/image', uploadRouter);
 app.use(errorMiddleware);
 
 async function start() {
