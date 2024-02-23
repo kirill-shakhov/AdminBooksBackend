@@ -255,7 +255,7 @@ class BookController {
     async getAuthors(req, res, next) {
         try {
             const userId = req.user.id; // ID пользователя из JWT
-            const userAuthors = await Author.find({user: userId});
+            const userAuthors = await Author.find({user: userId}).select('-__v -user -_id');
 
             return res.status(200).json({authors: userAuthors});
         } catch (e) {
@@ -293,7 +293,7 @@ class BookController {
     async getGenres(req, res, next) {
         try {
             const userId = req.user.id; // ID пользователя из JWT
-            const userGenres = await Genre.find({user: userId}); // Находим все жанры, добавленные пользователем
+            const userGenres = await Genre.find({user: userId}) .select('-__v -user -_id'); // Добавляем -_id здесь, чтобы исключить из основных документов
 
             return res.status(200).json({genres: userGenres});
         } catch (e) {
