@@ -5,6 +5,7 @@ const Role = require("../models/Role");
 const UserDto = require("../dtos/user-dto");
 const tokenService = require("./token-service");
 const ApiError = require('../exceptions/api-error');
+const s3Service = require("./s3Service");
 
 class UserService {
     async registration(req) {
@@ -17,13 +18,23 @@ class UserService {
         const hashPassword = await bcrypt.hashSync(password, 7);
         const activationLink = uuid.v4();
         const userRole = await Role.findOne({value: "USER"});
+        let imageS3 = '';
+
+        if (req.file) {
+            const response = await s3Service.uploadFileToS3(req.file, 'avatars');
+            console.log(response);
+            imageS3 = response.href;
+        }
+
+        console.log(imageS3);
+
         const user = new User({
             username,
             password: hashPassword,
             email,
+            image: imageS3,
             firstName,
             lastName,
-            image: req.file ? req.file.path : null, // Получаем путь к загруженному файлу
             activationLink,
             roles: [userRole.value]
         });
