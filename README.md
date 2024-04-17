@@ -143,6 +143,33 @@ descriptions and comments to books, and more.
 - **Functionality:** updating user data.
 - **Authentication:** Access to this endpoint requires a valid JWT to be included in the request header.
 
+## Project Structure
+
+Below is the directory layout of the project, which organizes the application's various parts into a clean and manageable structure:
+
+```plaintext
+AdminBooksBackend/
+│
+├── src/                      # Source files for the application
+│   ├── api/                  # API endpoints
+│   │   ├── controllers/      # Controllers to handle requests
+│   │   └── routes/           # Route definitions
+│   │
+│   ├── app.js                # Entry point of the application
+│   ├── config/               # Configuration files
+│   │
+│   ├── dtos/                 # Data transfer objects
+│   ├── exceptions/           # Custom error handling
+│   ├── middleware/           # Middleware functions
+│   ├── migrations/           # Database migration scripts
+│   ├── models/               # Database models
+│   └── services/             # Business logic and services
+│
+├── .env                      # Environment variable files
+├── package.json              # Project description and dependencies
+└── README.md                 # Project documentation
+```
+
 ## Technologies and Tools
 
 ### Platform and Programming Language
