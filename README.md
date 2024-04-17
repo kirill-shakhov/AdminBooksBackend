@@ -71,16 +71,15 @@ descriptions and comments to books, and more.
 - **Functionality:** fetching an author.
 - **Authentication:** Access to this endpoint requires a valid JWT to be included in the request header.
 
-
 ### Book Upload (JWT required)
 
 - **Endpoint:** `/books/upload`
 - **Method:** POST
-- **Parameters:** Title, GenreName, AuthorName, Book,  Image 
+- **Parameters:** Title, GenreName, AuthorName, Book, Image
 - **Functionality:** Uploads a book.
 - **Authentication:** Access to this endpoint requires a valid JWT to be included in the request header.
 
-###  Fetching List of added books (JWT required)
+### Fetching List of added books (JWT required)
 
 - **Endpoint:** `/books`
 - **Method:** GET
@@ -104,13 +103,16 @@ descriptions and comments to books, and more.
 - **Authentication:** Access to this endpoint requires a valid JWT to be included in the request header.
 
 ### Update Book Information (JWT Required)
+
 - **Endpoint:** `/books/{bookId}`
-- **Parameters:** Title, GenreName, AuthorName, Book,  Image
+- **Parameters:** Title, GenreName, AuthorName, Book, Image
 - **Method:** PATCH
-- **Functionality:** Updates book details including title, image, book file, genre, and author. If new image or book files are provided, old files are deleted.
+- **Functionality:** Updates book details including title, image, book file, genre, and author. If new image or book
+  files are provided, old files are deleted.
 - **Authentication:** Access to this endpoint requires a valid JWT to be included in the request header.
 
 ### Delete a Book (JWT Required)
+
 - **Endpoint:** `/books/{bookId}`
 - **Parameters:** Book ID
 - **Method:** DELETE
@@ -141,7 +143,54 @@ descriptions and comments to books, and more.
 - **Functionality:** updating user data.
 - **Authentication:** Access to this endpoint requires a valid JWT to be included in the request header.
 
+## Technologies and Tools
 
-## Suggested Folder Structure for a Monolithic Node.js Project
+### Platform and Programming Language
+
+- **Node.js**: Serves as the server-side platform for running JavaScript on the server.
+- **Express**: A web application framework for Node.js, version 4.18.2, simplifying the setup of routes and management
+  of HTTP requests.
+
+### Database
+
+- **MongoDB**: A NoSQL database used for storing all user, book, and comments data.
+- **Mongoose**: Version 8.0.3, an ODM (Object Data Modeling) library for MongoDB and Node.js that manages relationships
+  between data and provides schema validation.
+
+### File Handling and Storage
+
+- **Multer**: Version 1.4.5-lts.1, a middleware for handling `multipart/form-data`, which is used for uploading image
+  and PDF files to the server.
+- **Amazon S3 (Assumed)**: Utilized for secure and scalable storage of large media files like book images and PDFs, enhancing file management and access.
+
+### Authentication and Security
+
+- **JWT (JSON Web Tokens)**: Utilizes version 9.0.2 for managing sessions and securing API access, ensuring that only
+  authenticated users can access certain API endpoints.
+- **bcryptjs**: Version 2.4.3, used for hashing and securing user passwords.
+- **Cookie-parser**: Version 1.4.6, middleware to help you manage cookies.
+
+### Networking and APIs
+
+- **CORS (Cross-Origin Resource Sharing)**: Version 2.8.5, a package that allows or restricts requested resources on a
+  web server depending on where the HTTP request was initiated.
+
+### Utilities
+
+- **Dotenv**: Version 16.3.1, manages environment variables which help configure different aspects of the application
+  without hard-coding sensitive information.
+- **Nodemailer**: Version 6.9.8, a module for Node.js to send emails easily.
+- **uuid**: Version 9.0.1, provides RFC4122 UUIDs for creating unique identifiers necessary for session tokens or
+  similar use cases.
+
+### Data Validation
+
+- **Express-Validator**: Version 7.0.1, a library used to validate and sanitize input data to prevent incorrect data
+  entry and security threats like SQL Injection.
+
+These technologies and tools collectively form the backbone of the application, enabling robust, secure, and scalable
+backend services. Their specific versions ensure compatibility and stability across the different components of the
+application.
+
 
 
