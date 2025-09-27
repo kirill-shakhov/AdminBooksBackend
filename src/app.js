@@ -9,6 +9,7 @@ const authRouter = require('./api/routes/authRouter');
 const bookRouter = require('./api/routes/bookRouter');
 const profileRouter = require('./api/routes/profileRouter');
 const uploadRouter = require('./api/routes/s3Router');
+const usersRouter = require('./api/routes/usersRouter');
 const errorMiddleware = require('./middleware/errorMiddleware');
 
 const swaggerUi = require('swagger-ui-express');
@@ -32,6 +33,7 @@ app.use('/auth', authRouter);
 app.use('/books', bookRouter);
 app.use('/profile', profileRouter);
 app.use('/image', uploadRouter);
+app.use('/users', usersRouter);
 app.use(errorMiddleware);
 
 async function start() {
