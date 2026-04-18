@@ -11,6 +11,7 @@ const profileRouter = require('./api/routes/profileRouter');
 const uploadRouter = require('./api/routes/s3Router');
 const usersRouter = require('./api/routes/usersRouter');
 const errorMiddleware = require('./middleware/errorMiddleware');
+const initializeRoles = require('./init/initializeRoles');
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swaggerDef');
@@ -39,6 +40,7 @@ app.use(errorMiddleware);
 async function start() {
     try {
         await mongoose.connect(process.env.DB_URL)
+        await initializeRoles();
         app.listen(PORT, () => {
             console.log(`server started on port ${PORT}`)
         });

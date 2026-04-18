@@ -3,6 +3,7 @@
 const User = require('../../models/User');
 const {validationResult} = require('express-validator');
 const userService = require('../../services/user-service');
+const { setRefreshTokenCookie } = require('../../utils/auth-cookie-utils');
 
 class authController {
     async checkUserExists(req, res, next) {
@@ -29,9 +30,7 @@ class authController {
 
             const userData = await userService.registration(req);
 
-            res.cookie('refreshToken', userData.refreshToken, {
-                maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true
-            });
+            setRefreshTokenCookie(res, userData.refreshToken);
             return res.status(200).json({
                 ...userData
             });
@@ -46,9 +45,7 @@ class authController {
 
             const userData = await userService.login({username, password});
 
-            res.cookie('refreshToken', userData.refreshToken, {
-                maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true
-            });
+            setRefreshTokenCookie(res, userData.refreshToken);
 
             return res.status(200).json({
                 ...userData
@@ -99,12 +96,28 @@ class authController {
 
             const userData = await userService.refresh(refreshToken);
 
-            res.cookie('refreshToken', userData.refreshToken, {
-                maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true
-            });
+            setRefreshTokenCookie(res, userData.refreshToken);
 
             return res.json({...userData});
 
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async loginWithGoogle(req, res, next) {
+        try {
+            const { token } = req.body;
+
+            if (!token) {
+                return res.status(400).json({ message: 'Google token is required' });
+            }
+
+            const userData = await userService.loginWithGoogle(token);
+
+            setRefreshTokenCookie(res, userData.refreshToken);
+
+            return res.status(200).json({ ...userData });
         } catch (e) {
             next(e);
         }

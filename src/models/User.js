@@ -10,6 +10,9 @@ const User = new Schema({
     image: {type: String, required: false},
     isActivated: {type: Boolean, default: true},
     activationLink: {type: String},
+    userSettings: {
+        isDarkModeEnabled: {type: Boolean, default: false}
+    },
     roles: [{type: String, ref: 'Role'}]
 });
 

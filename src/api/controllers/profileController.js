@@ -60,6 +60,14 @@ class Profile {
             if (req.body.name) currentUser.name = req.body.name;
             // Добавьте другие поля, которые разрешено обновлять
 
+            if (req.body.userSettings) {
+                currentUser.userSettings = {
+                    ...currentUser.userSettings,
+                    ...req.body.userSettings
+                };
+            }
+            
+
             await currentUser.save();
 
             // Фильтрация чувствительных данных перед отправкой

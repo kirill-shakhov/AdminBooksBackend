@@ -6,6 +6,10 @@ const UserDto = require("../dtos/user-dto");
 const tokenService = require("./token-service");
 const ApiError = require('../exceptions/api-error');
 const s3Service = require("./s3Service");
+const { OAuth2Client } = require('google-auth-library');
+const config = require('../config/config');
+
+const googleClient = new OAuth2Client(config.googleClientId);
 
 class UserService {
     async registration(req) {
@@ -100,6 +104,45 @@ class UserService {
         return {...tokens, user: userDto}
 
 
+    }
+
+    async updateUserByAdmin(userId, updateData) {
+        const user = await User.findByIdAndUpdate(userId, updateData, { new: true });
+        if (!user) throw new Error('User not found');
+        return user;
+    }
+
+    async loginWithGoogle(token) {
+        const ticket = await googleClient.verifyIdToken({
+            idToken: token,
+            audience: config.googleClientId,
+        });
+
+        const payload = ticket.getPayload();
+        const { email, given_name, family_name, picture } = payload;
+
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            const userRole = await Role.findOne({ value: 'USER' });
+            user = new User({
+                username: email,
+                password: uuid.v4(),
+                email,
+                firstName: given_name || '',
+                lastName: family_name || '',
+                image: picture || '',
+                isActivated: true,
+                roles: [userRole.value],
+            });
+            await user.save();
+        }
+
+        const userDto = new UserDto(user);
+        const tokens = tokenService.generateTokens({ ...userDto });
+        await tokenService.saveToken(userDto.id, tokens.refreshToken);
+
+        return { ...tokens, user: userDto };
     }
 
 

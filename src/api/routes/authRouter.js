@@ -22,6 +22,7 @@ router.post('/logout', controller.logout)
 // router.post('/activate/:link',)
 router.get('/refresh',controller.refresh)
 router.post('/check-user', controller.checkUserExists);
+router.post('/google', controller.loginWithGoogle);
 
 module.exports = router;
 
