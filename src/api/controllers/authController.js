@@ -1,127 +1,199 @@
 // AdminBooksBackend > src > api > controllers > authController.js
 
-const User = require('../../models/User');
-const {validationResult} = require('express-validator');
-const userService = require('../../services/user-service');
-const { setRefreshTokenCookie } = require('../../utils/auth-cookie-utils');
+const User = require("../../models/User");
+const { validationResult } = require("express-validator");
+const userService = require("../../services/user-service");
+const ApiError = require("../../exceptions/api-error");
+const { setRefreshTokenCookie } = require("../../utils/auth-cookie-utils");
+const QRCode = require("qrcode");
 
 class authController {
-    async checkUserExists(req, res, next) {
-        try {
-            const {username} = req.body;
+  async checkUserExists(req, res, next) {
+    try {
+      const { username } = req.body;
 
-            const userByUsername = await User.findOne({username});
+      const userByUsername = await User.findOne({ username });
 
-            if (userByUsername) return res.status(200).json({exists: true});
+      if (userByUsername) return res.status(200).json({ exists: true });
 
-            return res.status(200).json({exists: false});
-
-        } catch (e) {
-            next(e);
-        }
+      return res.status(200).json({ exists: false });
+    } catch (e) {
+      next(e);
     }
+  }
 
-    async registration(req, res, next) {
-        try {
-            const errors = validationResult(req);
-            if (!errors.isEmpty()) {
-                return res.status(400).json({message: 'Ошибка при регистрации', errors});
-            }
+  async registration(req, res, next) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res
+          .status(400)
+          .json({ message: "Registration validation failed", errors });
+      }
 
-            const userData = await userService.registration(req);
+      const userData = await userService.registration(req);
 
-            setRefreshTokenCookie(res, userData.refreshToken);
-            return res.status(200).json({
-                ...userData
-            });
-        } catch (e) {
-            next(e);
-        }
+      setRefreshTokenCookie(res, userData.refreshToken);
+      return res.status(200).json({
+        ...userData,
+      });
+    } catch (e) {
+      next(e);
     }
+  }
 
-    async login(req, res, next) {
-        try {
-            const {username, password} = req.body;
+  async login(req, res, next) {
+    try {
+      const { username, password } = req.body;
 
-            const userData = await userService.login({username, password});
+      const userData = await userService.login({ username, password });
+      
+      if (!userData.twoFactorRequired) {
+        setRefreshTokenCookie(res, userData.refreshToken);
+      }
 
-            setRefreshTokenCookie(res, userData.refreshToken);
-
-            return res.status(200).json({
-                ...userData
-            });
-
-
-        } catch (e) {
-            next(e);
-        }
-
+      return res.status(200).json({
+        ...userData,
+      });
+    } catch (e) {
+      next(e);
     }
+  }
 
-    async getUsers(req, res) {
-        try {
-            const users = await User.find();
-            res.json(users);
-        } catch (e) {
+  async getUsers(req, res) {
+    try {
+      const users = await User.find();
+      res.json(users);
+    } catch (e) {}
+  }
 
-        }
+  async logout(req, res, next) {
+    try {
+      const { refreshToken } = req.cookies;
+      const token = await userService.logout(refreshToken);
+      res.clearCookie("refreshToken");
+      return res.json(token);
+    } catch (e) {
+      next(e);
     }
+  }
 
-    async logout(req, res, next) {
+  async refresh(req, res, next) {
+    try {
+      const { refreshToken } = req.cookies;
 
-        try {
-            const {refreshToken} = req.cookies;
-            const token = await userService.logout(refreshToken);
-            res.clearCookie('refreshToken');
-            return res.json(token);
+      const userData = await userService.refresh(refreshToken);
 
-        } catch (e) {
-            next(e);
-        }
+      setRefreshTokenCookie(res, userData.refreshToken);
+
+      return res.json({ ...userData });
+    } catch (e) {
+      next(e);
     }
+  }
 
-    // async activate(req, res) {
-    //
-    //     try {
-    //     } catch (e) {
-    //
-    //     }
-    // }
+  async loginWithGoogle(req, res, next) {
+    try {
+      const { token } = req.body;
 
-    async refresh(req, res, next) {
-        try {
+      if (!token) {
+        return res.status(400).json({ message: "Google token is required" });
+      }
 
-            const {refreshToken} = req.cookies;
+      const userData = await userService.loginWithGoogle(token);
 
+      if (!userData.twoFactorRequired) {
+        setRefreshTokenCookie(res, userData.refreshToken);
+      }
 
-            const userData = await userService.refresh(refreshToken);
-
-            setRefreshTokenCookie(res, userData.refreshToken);
-
-            return res.json({...userData});
-
-        } catch (e) {
-            next(e);
-        }
+      return res.status(200).json({ ...userData });
+    } catch (e) {
+      next(e);
     }
+  }
 
-    async loginWithGoogle(req, res, next) {
-        try {
-            const { token } = req.body;
+  async setupTwoFactor(req, res, next) {
+    try {
+      const userId = req.user && req.user.id;
 
-            if (!token) {
-                return res.status(400).json({ message: 'Google token is required' });
-            }
+      if (!userId) {
+        throw ApiError.UnauthorizedError();
+      }
 
-            const userData = await userService.loginWithGoogle(token);
+      const { appName } = req.body || {};
+      const { otpauthUrl } = await userService.setupTwoFactor(userId, appName);
 
-            setRefreshTokenCookie(res, userData.refreshToken);
+      // Generate QR code from otpauthUrl and convert to base64
+      const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
+      const qrCodeBase64 = qrCodeDataUrl.split(",")[1];
 
-            return res.status(200).json({ ...userData });
-        } catch (e) {
-            next(e);
-        }
+      return res.status(200).json({
+        qrCodeBase64,
+        twoFactorEnabled: false,
+      });
+    } catch (e) {
+      next(e);
     }
+  }
+
+  async enableTwoFactor(req, res, next) {
+    try {
+      const userId = req.user && req.user.id;
+
+      if (!userId) {
+        throw ApiError.UnauthorizedError();
+      }
+
+      const body = req.body || {};
+      const code = body.code;
+      const result = await userService.enableTwoFactor(userId, code);
+
+      return res.status(200).json(result);
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  async disableTwoFactor(req, res, next) {
+    try {
+      const userId = req.user && req.user.id;
+
+      if (!userId) {
+        throw ApiError.UnauthorizedError();
+      }
+
+      const body = req.body || {};
+      const code = body.code;
+      console.log("Received code for disabling 2FA:", code);
+      const result = await userService.disableTwoFactor(userId, code);
+
+      return res.status(200).json(result);
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  async verifyTwoFactorToken(req, res, next) {
+    try {
+      console.log("Verifying 2FA token with temp user:", req.tempUser);
+      const userId = req.tempUser && req.tempUser.userId;
+
+      if (!userId) {
+        throw ApiError.UnauthorizedError();
+      }
+
+      const body = req.body || {};
+      const code = body.code;
+      const result = await userService.verifyTwoFactorToken(userId, code);
+
+      setRefreshTokenCookie(res, result.refreshToken);
+
+      return res.status(200).json(result);
+    } catch (e) {
+      next(e);
+    }
+  }
+
 }
 
 module.exports = new authController();

@@ -11,6 +11,20 @@ class TokenService {
         }
     }
 
+    generateTempToken({userId, type}) {
+        const tempToken = jwt.sign({userId, type}, process.env.JWT_ACCESS_SECRET_2FA, {expiresIn: '5m'})
+        return tempToken;
+    }
+
+    validateTempToken(token) {
+        try {
+            const userData = jwt.verify(token, process.env.JWT_ACCESS_SECRET_2FA);
+            return userData;
+        }
+        catch (e){
+            return null;
+        }
+    }
 
     validateAccessToken(token) {
         try {
