@@ -19,6 +19,9 @@
     "url": "https://github.com/kirill-shakhov/AdminBooksBackend/issues"
   },
   "homepage": "https://github.com/kirill-shakhov/AdminBooksBackend#readme",
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.515.0",
     "@aws-sdk/lib-storage": "^3.515.0",
