@@ -21,9 +21,13 @@ router.post(
 
 router.post("/login", controller.login);
 router.post("/logout", controller.logout);
-// router.post('/activate/:link',)
+router.get("/activate", controller.activate);
+router.get("/activate/:token", controller.activate);
+router.post("/resend-activation", controller.resendActivation);
 router.get("/refresh", controller.refresh);
+
 router.post("/check-user", controller.checkUserExists);
+
 router.post("/google", controller.loginWithGoogle);
 
 router.post("/2fa/setup", authMiddleware, controller.setupTwoFactor);

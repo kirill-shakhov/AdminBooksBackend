@@ -31,15 +31,47 @@ class authController {
           .json({ message: "Registration validation failed", errors });
       }
 
-      const userData = await userService.registration(req);
+      await userService.registration(req);
+      return res.status(204).send();
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  async activate(req, res, next) {
+    try {
+      const token = (req.params && req.params.token) || (req.query && req.query.token);
+
+      if (!token) {
+        throw ApiError.BadRequest("Activation token is required");
+      }
+
+      const userData = await userService.activate(token);
 
       setRefreshTokenCookie(res, userData.refreshToken);
+
       return res.status(200).json({
         ...userData,
       });
     } catch (e) {
       next(e);
     }
+  }
+
+  async resendActivation(req, res, next) {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        throw ApiError.BadRequest("Email is required");
+      }
+
+      await userService.resendActivation(email);
+      return res.status(200).json({ message: "Activation email resent" });
+    } catch (e) {
+      next(e);
+    }
+    
   }
 
   async login(req, res, next) {

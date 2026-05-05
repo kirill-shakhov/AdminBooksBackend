@@ -12,6 +12,7 @@ const uploadRouter = require('./api/routes/s3Router');
 const usersRouter = require('./api/routes/usersRouter');
 const errorMiddleware = require('./middleware/errorMiddleware');
 const initializeRoles = require('./init/initializeRoles');
+const config = require('./config/config');
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swaggerDef');
@@ -24,7 +25,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
     credentials: true,
-    origin: process.env.CLIENT_URL
+    origin: config.clientUrl
 }));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/uploads/avatars', express.static('uploads/avatars'));
