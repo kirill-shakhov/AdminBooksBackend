@@ -8,7 +8,7 @@ const User = new Schema({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   image: { type: String, required: false },
-  isActivated: { type: Boolean, default: true },
+  isActivated: { type: Boolean, default: false },
   activationLink: { type: String },
   twoFactorEnabled: { type: Boolean, default: false },
   twoFactorSecret: { type: String, default: null, select: false },
