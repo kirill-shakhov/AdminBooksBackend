@@ -33,6 +33,10 @@ router.post("/google", controller.loginWithGoogle);
 router.post("/2fa/setup", authMiddleware, controller.setupTwoFactor);
 router.post("/2fa/enable", authMiddleware, controller.enableTwoFactor);
 router.post("/2fa/disable", authMiddleware, controller.disableTwoFactor);
-router.post("/2fa/verify", verifyTempTokenMiddleware, controller.verifyTwoFactorToken);
+router.post(
+  "/2fa/verify",
+  verifyTempTokenMiddleware,
+  controller.verifyTwoFactorToken,
+);
 
 module.exports = router;

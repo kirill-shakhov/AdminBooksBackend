@@ -24,7 +24,7 @@ class TwoFactorAuthService {
     }
 
     const issuer = appName || process.env.TWO_FACTOR_APP_NAME || "CloudReads";
-    
+
     return otplib.generateURI({
       label: email,
       issuer,

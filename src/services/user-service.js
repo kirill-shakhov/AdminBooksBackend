@@ -12,7 +12,6 @@ const User = require("../models/User");
 const Role = require("../models/Role");
 const EmailToken = require("../models/EmailToken");
 
-
 //services
 const MailService = require("./mail-service");
 const s3Service = require("./s3Service");
@@ -25,7 +24,6 @@ const { EMAIL_TOKEN_TTL_MS } = require("../constants/email-token.constants");
 
 //utils
 const generateActivationLink = require("../utils/generateActivationLink");
-
 
 class UserService {
   async registration(req) {
@@ -71,7 +69,9 @@ class UserService {
         user ? User.deleteOne({ _id: user._id }) : Promise.resolve(),
       ]);
 
-      throw ApiError.InternalServerError("Registration failed. Please try again.");
+      throw ApiError.InternalServerError(
+        "Registration failed. Please try again.",
+      );
     }
   }
 
@@ -95,7 +95,10 @@ class UserService {
     }
 
     if (user.twoFactorEnabled) {
-      const tempToken = tokenService.generateTempToken({ userId: user._id, type: "2fa" });
+      const tempToken = tokenService.generateTempToken({
+        userId: user._id,
+        type: "2fa",
+      });
       return { twoFactorRequired: true, tempToken };
     }
 
@@ -217,7 +220,10 @@ class UserService {
     }
 
     if (user.twoFactorEnabled) {
-      const tempToken = tokenService.generateTempToken({ userId: user._id, type: "2fa" });
+      const tempToken = tokenService.generateTempToken({
+        userId: user._id,
+        type: "2fa",
+      });
       return { twoFactorRequired: true, tempToken };
     }
 
@@ -270,7 +276,8 @@ class UserService {
     });
 
     user.twoFactorEnabled = true;
-    user.twoFactorSecret = twoFactorAuthService.encryptSecret(decryptedTempSecret);
+    user.twoFactorSecret =
+      twoFactorAuthService.encryptSecret(decryptedTempSecret);
     user.twoFactorTempSecret = null;
     await user.save();
 
@@ -280,25 +287,26 @@ class UserService {
   }
 
   async disableTwoFactor(userId, token) {
-  const user = await User.findById(userId).select("+twoFactorSecret");
+    const user = await User.findById(userId).select("+twoFactorSecret");
 
-  const decryptedSecret = twoFactorAuthService.decryptSecret(user.twoFactorSecret);
+    const decryptedSecret = twoFactorAuthService.decryptSecret(
+      user.twoFactorSecret,
+    );
 
-  twoFactorAuthService.verifyToken({
-    token,
-    secret: decryptedSecret,
-  });
+    twoFactorAuthService.verifyToken({
+      token,
+      secret: decryptedSecret,
+    });
 
-  user.twoFactorEnabled = false;
-  user.twoFactorSecret = null;
-  user.twoFactorTempSecret = null;
+    user.twoFactorEnabled = false;
+    user.twoFactorSecret = null;
+    user.twoFactorTempSecret = null;
 
-  await user.save();
-  
-  return {
-    twoFactorEnabled: false,
-  };
+    await user.save();
 
+    return {
+      twoFactorEnabled: false,
+    };
   }
 
   async verifyTwoFactorToken(userId, token) {
@@ -308,12 +316,14 @@ class UserService {
       throw ApiError.NotFound("User not found");
     }
 
-    if(!user.twoFactorEnabled) {
+    if (!user.twoFactorEnabled) {
       throw ApiError.BadRequest("2FA is not enabled for this user");
     }
 
-    if(!user.twoFactorSecret) {
-      throw ApiError.InternalServerError("2FA secret is not configured for this user");
+    if (!user.twoFactorSecret) {
+      throw ApiError.InternalServerError(
+        "2FA secret is not configured for this user",
+      );
     }
 
     twoFactorAuthService.verifyToken({
@@ -326,7 +336,7 @@ class UserService {
 
     await tokenService.saveToken(userDto.id, tokens.refreshToken);
 
-return { ...tokens, user: userDto };
+    return { ...tokens, user: userDto };
   }
 
   async #deleteActivationTokens(userId) {

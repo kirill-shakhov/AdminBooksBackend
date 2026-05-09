@@ -7,6 +7,8 @@
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "migrate:2fa-flag": "node src/migrations/updateUsersTwoFactorEnabled.js"
   },
   "repository": {
@@ -40,11 +42,13 @@
     "otplib": "^13.4.0",
     "qrcode": "^1.5.4",
     "resend": "^6.12.2",
+    "socket.io": "^4.8.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.2",
+    "prettier": "^3.8.3"
   }
 }

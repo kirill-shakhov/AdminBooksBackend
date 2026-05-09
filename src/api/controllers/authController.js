@@ -40,7 +40,8 @@ class authController {
 
   async activate(req, res, next) {
     try {
-      const token = (req.params && req.params.token) || (req.query && req.query.token);
+      const token =
+        (req.params && req.params.token) || (req.query && req.query.token);
 
       if (!token) {
         throw ApiError.BadRequest("Activation token is required");
@@ -71,7 +72,6 @@ class authController {
     } catch (e) {
       next(e);
     }
-    
   }
 
   async login(req, res, next) {
@@ -79,7 +79,7 @@ class authController {
       const { username, password } = req.body;
 
       const userData = await userService.login({ username, password });
-      
+
       if (!userData.twoFactorRequired) {
         setRefreshTokenCookie(res, userData.refreshToken);
       }
@@ -225,7 +225,6 @@ class authController {
       next(e);
     }
   }
-
 }
 
 module.exports = new authController();

@@ -3,7 +3,7 @@ const express = require("express");
 const Router = require("express");
 const multer = require("multer");
 const router = new Router();
-const controller = require('../controllers/s3Controller');
+const controller = require("../controllers/s3Controller");
 
 const upload = multer();
 

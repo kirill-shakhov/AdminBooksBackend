@@ -135,7 +135,7 @@ descriptions and comments to books, and more.
 - **Functionality:** fetching user data.
 - **Authentication:** Access to this endpoint requires a valid JWT to be included in the request header.
 
-### Update profile  (JWT required)
+### Update profile (JWT required)
 
 - **Endpoint:** `/profile/update`
 - **Method:** PATCH
@@ -218,6 +218,3 @@ AdminBooksBackend/
 These technologies and tools collectively form the backbone of the application, enabling robust, secure, and scalable
 backend services. Their specific versions ensure compatibility and stability across the different components of the
 application.
-
-
-
