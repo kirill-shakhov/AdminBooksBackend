@@ -1,24 +1,28 @@
 // AdminBooksBackend > src > app.js
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const cookieParser = require("cookie-parser");
+require('dotenv').config()
+const express = require('express');
+const http = require('http');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
-const mongoose = require("mongoose");
-const authRouter = require("./api/routes/authRouter");
-const bookRouter = require("./api/routes/bookRouter");
-const profileRouter = require("./api/routes/profileRouter");
-const uploadRouter = require("./api/routes/s3Router");
-const usersRouter = require("./api/routes/usersRouter");
-const errorMiddleware = require("./middleware/errorMiddleware");
-const initializeRoles = require("./init/initializeRoles");
-const config = require("./config/config");
+const mongoose = require('mongoose');
+const authRouter = require('./api/routes/authRouter');
+const bookRouter = require('./api/routes/bookRouter');
+const profileRouter = require('./api/routes/profileRouter');
+const uploadRouter = require('./api/routes/s3Router');
+const usersRouter = require('./api/routes/usersRouter');
+const errorMiddleware = require('./middleware/errorMiddleware');
+const initializeRoles = require('./init/initializeRoles');
+const config = require('./config/config');
+const { initSocket } = require('./socket');
 
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./swaggerDef");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const server = http.createServer(app);
+const PORT = process.env.PORT || 5000
+
 
 app.use(express.json());
 app.use(cookieParser());
@@ -40,15 +44,17 @@ app.use("/users", usersRouter);
 app.use(errorMiddleware);
 
 async function start() {
-  try {
-    await mongoose.connect(process.env.DB_URL);
-    await initializeRoles();
-    app.listen(PORT, () => {
-      console.log(`server started on port ${PORT}`);
-    });
-  } catch (e) {
-    console.log(e);
-  }
+    try {
+        await mongoose.connect(process.env.DB_URL)
+        await initializeRoles();
+        initSocket(server);
+
+        server.listen(PORT, () => {
+            console.log(`server started on port ${PORT}`)
+        });
+    } catch (e) {
+        console.log(e);
+    }
 }
 
 start();

@@ -13,6 +13,7 @@ const Role = require("../models/Role");
 const EmailToken = require("../models/EmailToken");
 
 //services
+const socketService = require('./socket-service');
 const MailService = require("./mail-service");
 const s3Service = require("./s3Service");
 const EmailTokenService = require("./email-token-service");
@@ -26,6 +27,27 @@ const { EMAIL_TOKEN_TTL_MS } = require("../constants/email-token.constants");
 const generateActivationLink = require("../utils/generateActivationLink");
 
 class UserService {
+
+  async getAllUsers() {
+    try {
+      const users = await User.find();
+      const onlineUsers = socketService.getOnlineUsers();
+
+       return users.map((user)=>{
+        if( onlineUsers.has(String(user._id))){
+          return {...user.toObject(), isOnline: true}
+        }
+
+        return {...user.toObject(), isOnline: false}
+      })
+
+    }
+    catch (e) {
+      throw ApiError.InternalServerError("Failed to retrieve users");
+    }
+  }
+
+
   async registration(req) {
     const { username, password, firstName, lastName, email } = req.body;
     const candidate = await User.findOne({ username });
