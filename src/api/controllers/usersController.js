@@ -1,21 +1,14 @@
-const User = require('../../models/User');
-const userService = require('../../services/user-service');
-const socketService = require('../../services/socket-service');
+const userService = require("../../services/user-service");
 
 class UsersController {
-    async getUsers(req, res) {
-        try {
-            const users = await userService.getAllUsers();
-            res.json(users);
-        } catch (e) {
-            console.log(e);
-        }
+  async getUsers(req, res) {
+    try {
+      const users = await userService.getAllUsers();
+      res.json(users);
+    } catch (e) {
+      console.log(e);
     }
-
-    getOnlineUsers(req, res) {
-        const onlineUsers = socketService.getOnlineUsers();
-        res.json(onlineUsers);
-    }
+  }
 
   async updateUserByAdmin(req, res) {
     try {
