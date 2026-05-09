@@ -15,7 +15,10 @@ class SocketService {
   addOnlineUser(userId) {
     const normalizedId = String(userId);
     if (!this.onlineUsers.has(normalizedId)) {
-      this.onlineUsers.set(normalizedId, { userId: normalizedId, timerId: null });
+      this.onlineUsers.set(normalizedId, {
+        userId: normalizedId,
+        timerId: null,
+      });
     }
   }
 
