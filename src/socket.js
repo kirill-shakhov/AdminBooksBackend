@@ -13,20 +13,20 @@ function initSocket(server) {
     },
   });
 
+  socketService.init(io);
+
   io.on(SOCKET_EVENTS.CONNECTION, (socket) => {
     const user = socketService.handleConnection(socket);
     if (!user) return;
 
-    socketService.addOnlineUser(user.id, user.email);
-    io.emit(SOCKET_EVENTS.USER_ONLINE, { userId: user.id, email: user.email });
+    const alreadyOnline = socketService.checkUserInList(user.id);
+    socketService.addOnlineUser(user.id);
+    if (!alreadyOnline) {
+      io.emit(SOCKET_EVENTS.USER_ONLINE, { userId: user.id });
+    }
 
     socket.on(SOCKET_EVENTS.DISCONNECT, () => {
-      console.log(`Socket disconnected: ${socket.id}`);
-      socketService.removeOnlineUser(user.id);
-      io.emit(SOCKET_EVENTS.USER_OFFLINE, {
-        userId: user.id,
-        email: user.email,
-      });
+      socketService.handleDisconnect(socket, user.id);
     });
   });
 
