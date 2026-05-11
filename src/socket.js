@@ -20,7 +20,7 @@ function initSocket(server) {
     if (!user) return;
 
     const alreadyOnline = socketService.checkUserInList(user.id);
-    socketService.addOnlineUser(user.id);
+    socketService.addOnlineUser(user.id, socket.id);
     if (!alreadyOnline) {
       io.emit(SOCKET_EVENTS.USER_ONLINE, { userId: user.id });
     }
