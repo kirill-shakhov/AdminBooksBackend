@@ -5,6 +5,7 @@ const SOCKET_EVENTS = {
   USER_ONLINE: "userOnline",
   USER_OFFLINE: "userOffline",
   NEW_USER: "newUser",
+  USER_DELETED: "userDeleted",
 };
 
 module.exports = {

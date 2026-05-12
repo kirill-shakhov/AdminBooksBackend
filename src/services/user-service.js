@@ -8,6 +8,8 @@ const socketService = require("./socket-service");
 const userAuthService = require("./user-auth-service");
 const userTwoFactorService = require("./user-two-factor-service");
 const userRegistrationService = require("./user-registration-service");
+const { getIO } = require("../socket");
+const { SOCKET_EVENTS } = require("../constants/socket-events.constants");
 
 class UserService {
   async getAllUsers() {
@@ -61,6 +63,19 @@ class UserService {
     }
 
     return user;
+  }
+
+  async deleteUserByAdmin(userId) {
+    const deletedUser = await User.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      throw ApiError.NotFound("User not found");
+    }
+
+    socketService.removeOnlineUser(userId);
+    getIO().emit(SOCKET_EVENTS.USER_DELETED, { userId: String(userId) });
+
+    return deletedUser;
   }
 
   async loginWithGoogle(token) {

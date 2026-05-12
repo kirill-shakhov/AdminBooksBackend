@@ -23,6 +23,16 @@ class UsersController {
       res.status(500).json({ message: error.message });
     }
   }
+
+  async deleteUserByAdmin(req, res) {
+    try {
+      const userId = req.params.id;
+      const deletedUser = await userService.deleteUserByAdmin(userId);
+      res.status(200).json(deletedUser);
+    } catch (error) {
+      res.status(error.status || 500).json({ message: error.message });
+    }
+  }
 }
 
 module.exports = new UsersController();

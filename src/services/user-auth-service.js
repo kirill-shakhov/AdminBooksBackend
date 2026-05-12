@@ -104,7 +104,7 @@ class UserAuthService {
 
       const userPayload = {
         ...user.toObject(),
-        isOnline: socketService.checkUserInList(user._id),
+        isOnline: true,
       };
       getIO().emit(SOCKET_EVENTS.NEW_USER, userPayload);
     }
