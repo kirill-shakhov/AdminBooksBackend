@@ -7,11 +7,14 @@ const ApiError = require("../exceptions/api-error");
 const User = require("../models/User");
 const Role = require("../models/Role");
 const EmailToken = require("../models/EmailToken");
+const { getIO } = require("../socket");
+const { SOCKET_EVENTS } = require("../constants/socket-events.constants");
 
 const MailService = require("./mail-service");
 const s3Service = require("./s3Service");
 const EmailTokenService = require("./email-token-service");
 const tokenService = require("./token-service");
+const socketService = require("./socket-service");
 
 const { EMAIL_TOKEN_TTL_MS } = require("../constants/email-token.constants");
 
@@ -53,6 +56,12 @@ class UserRegistrationService {
 
       await user.save();
       await this.sendActivationEmail(user);
+
+      const userPayload = {
+        ...user.toObject(),
+        isOnline: socketService.checkUserInList(user._id),
+      };
+      getIO().emit(SOCKET_EVENTS.NEW_USER, userPayload);
     } catch (error) {
       await Promise.allSettled([
         user ? this.deleteActivationTokens(user._id) : Promise.resolve(),

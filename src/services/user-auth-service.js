@@ -8,6 +8,9 @@ const config = require("../config/config");
 
 const User = require("../models/User");
 const Role = require("../models/Role");
+const { getIO } = require("../socket");
+const { SOCKET_EVENTS } = require("../constants/socket-events.constants");
+const socketService = require("./socket-service");
 
 const tokenService = require("./token-service");
 
@@ -98,6 +101,12 @@ class UserAuthService {
         roles: [userRole.value],
       });
       await user.save();
+
+      const userPayload = {
+        ...user.toObject(),
+        isOnline: socketService.checkUserInList(user._id),
+      };
+      getIO().emit(SOCKET_EVENTS.NEW_USER, userPayload);
     }
 
     if (user.twoFactorEnabled) {

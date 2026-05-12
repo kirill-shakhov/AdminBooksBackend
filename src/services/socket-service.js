@@ -13,7 +13,7 @@ class SocketService {
 
   addOnlineUser(userId, socketId) {
     const normalizedId = String(userId);
-    
+
     if (!this.onlineUsers.has(normalizedId)) {
       this.onlineUsers.set(normalizedId, {
         userId: normalizedId,
@@ -57,13 +57,12 @@ class SocketService {
 
     if (!user) return;
     if (!user.sockets.has(socket.id)) return;
-    
+
     user.sockets.delete(socket.id);
 
     if (user.sockets.size === 0) {
       this.scheduleOffline(userId);
     }
-
   }
 
   removeOnlineUser(userId) {
