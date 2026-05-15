@@ -13,6 +13,7 @@ const { SOCKET_EVENTS } = require("../constants/socket-events.constants");
 const socketService = require("./socket-service");
 
 const tokenService = require("./token-service");
+const ROLES = require("../constants/roles.constants");
 
 const googleClient = new OAuth2Client(config.googleClientId);
 
@@ -89,7 +90,7 @@ class UserAuthService {
     let user = await User.findOne({ email });
 
     if (!user) {
-      const userRole = await Role.findOne({ value: "USER" });
+      const userRole = await Role.findOne({ value: ROLES.USER });
       user = new User({
         username: email,
         password: uuid.v4(),
@@ -99,6 +100,8 @@ class UserAuthService {
         image: picture || "",
         isActivated: true,
         roles: [userRole.value],
+        country: null,
+        bio: null,
       });
       await user.save();
 

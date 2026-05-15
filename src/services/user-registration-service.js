@@ -17,12 +17,13 @@ const tokenService = require("./token-service");
 const socketService = require("./socket-service");
 
 const { EMAIL_TOKEN_TTL_MS } = require("../constants/email-token.constants");
+const ROLES = require("../constants/roles.constants");
 
 const generateActivationLink = require("../utils/generateActivationLink");
 
 class UserRegistrationService {
   async registration(req) {
-    const { username, password, firstName, lastName, email } = req.body;
+    const { username, password, firstName, lastName, email, country, bio } = req.body;
     const candidate = await User.findOne({ username });
 
     if (candidate) {
@@ -31,7 +32,7 @@ class UserRegistrationService {
 
     const hashPassword = await bcrypt.hashSync(password, 7);
     const activationLink = uuid.v4();
-    const userRole = await Role.findOne({ value: "USER" });
+    const userRole = await Role.findOne({ value: ROLES.USER });
     let imageS3 = "";
 
     if (req.file) {
@@ -52,6 +53,8 @@ class UserRegistrationService {
         lastName,
         activationLink,
         roles: [userRole.value],
+        country,
+        bio,
       });
 
       await user.save();

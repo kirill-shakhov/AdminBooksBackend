@@ -1,10 +1,11 @@
 const Role = require("../models/Role");
+const ROLES = require("../constants/roles.constants");
 
 async function initializeRoles() {
   try {
     const existingRoles = await Role.countDocuments();
     if (existingRoles === 0) {
-      await Role.create({ value: "USER" }, { value: "ADMIN" });
+      await Role.create({ value: ROLES.USER }, { value: ROLES.ADMIN });
       console.log("Roles initialized");
     }
   } catch (e) {

@@ -1,12 +1,24 @@
 const userService = require("../../services/user-service");
 
 class UsersController {
+
+  async getUserById(req, res) {
+    try {
+      const userId = req.params.id;
+      const user = await userService.getUserById(userId);
+      res.json(user);
+    } catch (error) {
+      res.status(error.status || 500).json({ message: error.message });
+    }
+  }
+
   async getUsers(req, res) {
     try {
       const users = await userService.getAllUsers();
       res.json(users);
-    } catch (e) {
-      console.log(e);
+    } catch (error) {
+      console.error(error);
+      res.status(error.status || 500).json({ message: error.message });
     }
   }
 

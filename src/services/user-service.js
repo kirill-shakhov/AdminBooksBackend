@@ -1,4 +1,5 @@
 const ApiError = require("../exceptions/api-error");
+const UserDto = require("../dtos/user-dto");
 
 //models
 const User = require("../models/User");
@@ -12,17 +13,33 @@ const { getIO } = require("../socket");
 const { SOCKET_EVENTS } = require("../constants/socket-events.constants");
 
 class UserService {
+
+  async getUserById(userId) {
+    try {
+      const user = await User.findById(userId);
+
+      if (!user) {
+        throw ApiError.NotFound("User not found");
+      }
+
+      const userDto = new UserDto(user);
+
+      return userDto;
+    } catch (e) {
+      throw ApiError.InternalServerError("Failed to retrieve user");
+    }
+  }
+
+
   async getAllUsers() {
     try {
       const users = await User.find();
       const onlineUsers = socketService.getOnlineUsers();
 
       return users.map((user) => {
-        if (onlineUsers.has(String(user._id))) {
-          return { ...user.toObject(), isOnline: true };
-        }
-
-        return { ...user.toObject(), isOnline: false };
+        const userDto = new UserDto(user);
+        const isOnline = onlineUsers.has(String(user._id));
+        return { ...userDto, isOnline };
       });
     } catch (e) {
       throw ApiError.InternalServerError("Failed to retrieve users");

@@ -3,6 +3,7 @@ const path = require("path");
 
 const User = require("../../models/User");
 const ApiError = require("../../exceptions/api-error");
+const UserDto = require("../../dtos/user-dto");
 const { validationResult } = require("express-validator");
 const s3Service = require("../../services/s3Service");
 
@@ -14,11 +15,8 @@ class Profile {
       if (!profile) {
         throw ApiError.NotFound("User not found");
       }
-      // Фильтрация чувствительных данных перед отправкой
-      const userData = profile.toObject();
-      delete userData.password; // Удаление пароля из объекта пользователя
-      // Возвращение профиля
-      return res.status(200).json({ ...userData });
+      const userDto = new UserDto(profile);
+      return res.status(200).json(userDto);
     } catch (e) {
       next(e);
     }
@@ -70,16 +68,11 @@ class Profile {
 
       await currentUser.save();
 
-      // Фильтрация чувствительных данных перед отправкой
-      const userData = currentUser.toObject();
-      delete userData.password; // Удаление пароля из объекта пользователя
-      delete userData.activationLink;
-      delete userData._id;
-      delete userData.roles;
+      const userDto = new UserDto(currentUser);
 
       return res
         .status(200)
-        .json({ message: "Профиль успешно обновлен", userData });
+        .json({ message: "Профиль успешно обновлен", user: userDto });
     } catch (e) {
       next(e);
     }
