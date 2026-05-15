@@ -56,8 +56,18 @@ class Profile {
       }
 
       // Обновляем другие данные пользователя, если они есть
-      if (req.body.name) currentUser.name = req.body.name;
-      // Добавьте другие поля, которые разрешено обновлять
+      [
+        "username",
+        "email",
+        "firstName",
+        "lastName",
+        "country",
+        "bio",
+      ].forEach((field) => {
+        if (field in req.body) {
+          currentUser[field] = req.body[field];
+        }
+      });
 
       if (req.body.userSettings) {
         currentUser.userSettings = {
