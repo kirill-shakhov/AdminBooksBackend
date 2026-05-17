@@ -7,6 +7,9 @@ const UserDto = require("../../dtos/user-dto");
 const { validationResult } = require("express-validator");
 const s3Service = require("../../services/s3Service");
 
+const ActivityService = require("../../services/activity-service");
+const { ACTIVITY_TYPES } = require("../../constants/activity.constants");
+
 class Profile {
   async getProfile(req, res, next) {
     try {
@@ -35,27 +38,18 @@ class Profile {
       const userId = req.user.id;
       const currentUser = await User.findById(userId);
 
-      // Если есть файл для загрузки
       if (req.file) {
-        // Если у пользователя уже есть изображение, удаляем его из S3
         if (currentUser.image) {
-          // Создаем объект URL для парсинга полного URL
           const parsedUrl = new URL(currentUser.image);
-          // Извлекаем путь и удаляем ведущий слэш
           const fileKey = parsedUrl.pathname.slice(1);
           await s3Service.deleteFileFromS3(process.env.AWS_S3_BUCKET, fileKey);
         }
 
-        // Загрузка нового изображения в S3 и обновление URL изображения в профиле пользователя
         const response = await s3Service.uploadFileToS3(req.file, "avatars");
-
         console.log(response);
-
-        // Предполагаем, что response.Location содержит полный URL к загруженному файлу
         currentUser.image = response.href;
       }
 
-      // Обновляем другие данные пользователя, если они есть
       [
         "username",
         "email",
@@ -77,6 +71,7 @@ class Profile {
       }
 
       await currentUser.save();
+      await ActivityService.createActivity(currentUser._id, ACTIVITY_TYPES.PROFILE_UPDATED);
 
       const userDto = new UserDto(currentUser);
 

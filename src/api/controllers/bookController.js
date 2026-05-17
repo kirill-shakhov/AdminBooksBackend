@@ -8,27 +8,28 @@ const ApiError = require("../../exceptions/api-error");
 const { validationResult } = require("express-validator");
 const User = require("../../models/User");
 const s3Service = require("../../services/s3Service");
+const ActivityService = require("../../services/activity-service");
+const { ACTIVITY_TYPES } = require("../../constants/activity.constants");
 
 class BookController {
   async getBooksByAuthor(req, res, next) {
     try {
-      const authorName = req.params.authorId.toLowerCase(); // Получаем имя жанра из параметров запроса
+      const authorName = req.params.authorId.toLowerCase(); 
       const author = await Author.findOne({
         name: authorName,
         user: req.user.id,
-      }); // Находим жанр по имени
+      }); 
 
       if (!author) {
         throw ApiError.NotFound("Автор не найден");
-        // return res.status(404).json({message: "Автор не найден"});
       }
 
       const booksByAuthor = await Book.find({
         author: author._id,
         user: req.user.id,
       })
-        .populate("genre author", "name -_id") // Добавление информации о жанре и авторе
-        .select("-__v"); // Исключение поля __v
+        .populate("genre author", "name -_id")
+        .select("-__v");
       res.status(200).json(booksByAuthor);
     } catch (e) {
       next(e);
@@ -37,20 +38,19 @@ class BookController {
 
   async getBooksByGenre(req, res, next) {
     try {
-      const genreName = req.params.genreId.toLowerCase(); // Получаем имя жанра из параметров запроса
-      const genre = await Genre.findOne({ name: genreName, user: req.user.id }); // Находим жанр по имени
+      const genreName = req.params.genreId.toLowerCase();
+      const genre = await Genre.findOne({ name: genreName, user: req.user.id });
 
       if (!genre) {
         throw ApiError.NotFound("Жанр не найден");
-        // return res.status(404).json({message: "Жанр не найден"});
       }
 
       const booksByGenre = await Book.find({
         genre: genre._id,
         user: req.user.id,
       })
-        .populate("genre author", "name -_id") // Добавление информации об авторе
-        .select("-__v"); // Исключение поля __v
+        .populate("genre author", "name -_id")
+        .select("-__v");
 
       res.status(200).json(booksByGenre);
     } catch (e) {
@@ -60,10 +60,10 @@ class BookController {
 
   async getBooks(req, res, next) {
     try {
-      const userId = req.user.id; // ID пользователя из JWT
+      const userId = req.user.id;
       const userBooks = await Book.find({ user: userId })
-        .populate("genre author", "name -_id") // Добавление информации о жанре и авторе
-        .select("-__v -user"); // Исключение поля __v и user
+        .populate("genre author", "name -_id")
+        .select("-__v -user");
 
       return res.status(200).json({ books: userBooks });
     } catch (e) {
@@ -75,44 +75,40 @@ class BookController {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        // Обработка ошибок валидации
         throw ApiError.BadRequest(
           "Ошибка при обновлении книги",
           errors.array(),
         );
       }
 
-      const bookId = req.params.bookId; // ID книги из параметров запроса
-      const userId = req.user.id; // ID пользователя из JWT
+      const bookId = req.params.bookId;
+      const userId = req.user.id;
       const currentBook = await Book.findOne({ _id: bookId, user: userId });
       const updateData = {};
 
-      // Добавляем поля в объект updateData, если они предоставлены в теле запроса
       if (req.body.title) updateData.title = req.body.title;
 
       if (req.files && req.files["image"]) {
-        // Удаление старого файла изображения, если загружается новое изображение
         if (currentBook && currentBook.image) {
           const currentImagePath = path.join(currentBook.image);
           if (fs.existsSync(currentImagePath)) {
             fs.unlinkSync(currentImagePath);
           }
         }
-        updateData.image = req.files["image"][0].path; // Путь к новому изображению
+        updateData.image = req.files["image"][0].path;
       }
 
       if (req.files && req.files["book"]) {
-        // Удаление старого файла изображения, если загружается новое изображение
+
         if (currentBook && currentBook.book) {
           const currentBookPath = path.join(currentBook.book);
           if (fs.existsSync(currentBookPath)) {
             fs.unlinkSync(currentBookPath);
           }
         }
-        updateData.book = req.files["book"][0].path; // Путь к новому изображению
+        updateData.book = req.files["book"][0].path;
       }
 
-      // Обновляем жанр, если он предоставлен
       if (req.body.genreName) {
         let genre = await Genre.findOne({
           name: req.body.genreName.toLowerCase(),
@@ -128,7 +124,6 @@ class BookController {
         updateData.genre = genre._id;
       }
 
-      // Обновляем автора, если он предоставлен
       if (req.body.authorName) {
         let author = await Author.findOne({
           name: req.body.authorName.toLowerCase(),
@@ -144,7 +139,6 @@ class BookController {
         updateData.author = author._id;
       }
 
-      // Найти и обновить книгу
       const book = await Book.findOneAndUpdate(
         { _id: bookId, user: userId },
         updateData,
@@ -154,7 +148,6 @@ class BookController {
         .select("-__v -user");
 
       if (!book) {
-        // return res.status(404).json({message: "Книга не найдена или у вас нет прав на ее редактирование"});
         throw ApiError.NotFound(
           "Книга не найдена или у вас нет прав на ее редактирование",
         );
@@ -168,9 +161,8 @@ class BookController {
 
   async getBook(req, res, next) {
     try {
-      const bookId = req.params.bookId; // ID книги из параметров запроса
+      const bookId = req.params.bookId;
 
-      // Найти книгу по ID
       const book = await Book.findById(bookId)
         .populate("genre author", "name -_id")
         .select("-__v -user");
@@ -187,10 +179,9 @@ class BookController {
 
   async deleteBook(req, res, next) {
     try {
-      const bookId = req.params.bookId; // ID книги из параметров запроса
-      const userId = req.user.id; // ID пользователя из JWT
+      const bookId = req.params.bookId;
+      const userId = req.user.id;
 
-      // Найти книгу
       const book = await Book.findOne({ _id: bookId, user: userId });
       if (!book) {
         throw ApiError.NotFound(
@@ -198,22 +189,20 @@ class BookController {
         );
       }
 
-      // Удаление файлов (если они существуют)
       if (book.image) {
-        const imagePath = path.join(book.image); // Путь к файлу изображения
+        const imagePath = path.join(book.image);
         if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath); // Удаление файла изображения
+          fs.unlinkSync(imagePath);
         }
       }
 
       if (book.book) {
-        const bookFilePath = path.join(book.book); // Путь к файлу книги
+        const bookFilePath = path.join(book.book);
         if (fs.existsSync(bookFilePath)) {
-          fs.unlinkSync(bookFilePath); // Удаление файла книги
+          fs.unlinkSync(bookFilePath);
         }
       }
 
-      // Удаление записи книги из базы данных
       await Book.findOneAndDelete({ _id: bookId, user: userId });
 
       return res.status(200).json({ message: "Книга успешно удалена" });
@@ -229,21 +218,19 @@ class BookController {
 
       let imageUrl, bookUrl;
 
-      // Загрузка изображения, если оно есть
       if (req.files["image"]) {
-        const image = req.files["image"][0]; // Получаем файл изображения
+        const image = req.files["image"][0];
         const imageUploadResult = await s3Service.uploadFileToS3(
           image,
           "books-previews",
         );
-        imageUrl = imageUploadResult.href; // URL изображения после загрузки в S3
+        imageUrl = imageUploadResult.href;
       }
 
-      // Загрузка файла книги, если он есть
       if (req.files["book"]) {
-        const book = req.files["book"][0]; // Получаем файл книги
+        const book = req.files["book"][0];
         const bookUploadResult = await s3Service.uploadFileToS3(book, "books");
-        bookUrl = bookUploadResult.href; // URL книги после загрузки в S3
+        bookUrl = bookUploadResult.href;
       }
 
       let lowerCaseGenreName = genreName.toLowerCase();
@@ -281,6 +268,7 @@ class BookController {
       });
 
       await book.save();
+      await ActivityService.createActivity(userId, ACTIVITY_TYPES.BOOK_UPLOADED);
       return res.status(200).json({ message: "Книга успешно добавлена", book });
     } catch (e) {
       next(e);

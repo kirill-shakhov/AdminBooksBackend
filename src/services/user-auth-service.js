@@ -15,6 +15,9 @@ const socketService = require("./socket-service");
 const tokenService = require("./token-service");
 const ROLES = require("../constants/roles.constants");
 
+const ActivityService = require("./activity-service");
+const { ACTIVITY_TYPES } = require("../constants/activity.constants");
+
 const googleClient = new OAuth2Client(config.googleClientId);
 
 class UserAuthService {
@@ -109,7 +112,9 @@ class UserAuthService {
         ...user.toObject(),
         isOnline: true,
       };
+
       getIO().emit(SOCKET_EVENTS.NEW_USER, userPayload);
+      await ActivityService.createActivity(user._id, ACTIVITY_TYPES.REGISTERED);
     }
 
     if (user.twoFactorEnabled) {

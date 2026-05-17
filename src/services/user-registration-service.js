@@ -15,6 +15,8 @@ const s3Service = require("./s3Service");
 const EmailTokenService = require("./email-token-service");
 const tokenService = require("./token-service");
 const socketService = require("./socket-service");
+const ActivityService = require("./activity-service");
+const { ACTIVITY_TYPES } = require("../constants/activity.constants");
 
 const { EMAIL_TOKEN_TTL_MS } = require("../constants/email-token.constants");
 const ROLES = require("../constants/roles.constants");
@@ -59,16 +61,19 @@ class UserRegistrationService {
 
       await user.save();
       await this.sendActivationEmail(user);
+      await ActivityService.createActivity(user._id, ACTIVITY_TYPES.REGISTERED);
 
       const userPayload = {
         ...user.toObject(),
         isOnline: socketService.checkUserInList(user._id),
       };
       getIO().emit(SOCKET_EVENTS.NEW_USER, userPayload);
+      
     } catch (error) {
       await Promise.allSettled([
         user ? this.deleteActivationTokens(user._id) : Promise.resolve(),
         user ? User.deleteOne({ _id: user._id }) : Promise.resolve(),
+        user ? ActivityService.removeUserActivities(user._id) : Promise.resolve(),
       ]);
 
       throw ApiError.InternalServerError(

@@ -11,6 +11,7 @@ const bookRouter = require("./api/routes/bookRouter");
 const profileRouter = require("./api/routes/profileRouter");
 const uploadRouter = require("./api/routes/s3Router");
 const usersRouter = require("./api/routes/usersRouter");
+const activitiesRouter = require("./api/routes/activitiesRouter");
 const errorMiddleware = require("./middleware/errorMiddleware");
 const initializeRoles = require("./init/initializeRoles");
 const config = require("./config/config");
@@ -40,6 +41,7 @@ app.use("/books", bookRouter);
 app.use("/profile", profileRouter);
 app.use("/image", uploadRouter);
 app.use("/users", usersRouter);
+app.use("/activities", activitiesRouter);
 app.use(errorMiddleware);
 
 async function start() {
