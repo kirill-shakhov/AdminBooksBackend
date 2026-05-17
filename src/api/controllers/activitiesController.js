@@ -4,8 +4,7 @@ class ActivitiesController {
 
   async getUserActivities(req, res) {
     try {
-      const userId = req.user.id;
-      console.log("User ID:", userId); // Debugging log
+      const userId = req.params.id;
       if (!userId) {
         return res.status(400).json({ message: "User ID is required" });
       }

@@ -6,6 +6,6 @@ const roleMiddleware = require("../../middleware/roleMiddleware");
 const authMiddleware = require("../../middleware/authMiddleware");
 const ROLES = require("../../constants/roles.constants");
 
-router.get("/", authMiddleware, roleMiddleware([ROLES.USER, ROLES.ADMIN]), controller.getUserActivities);
+router.get("/:id", roleMiddleware([ROLES.ADMIN, ROLES.USER]), controller.getUserActivities);
 
 module.exports = router;
